@@ -1,0 +1,227 @@
+#+TITLE: Italian Students Mental Disorders
+#+AUTHOR: Alessandro Riva, Marco Bauce
+#+DATE: 2022/07/05
+#+STARTUP: content
+#+PROPERTY: header-args:python :async yes :results output
+#+BIBLIOGRAPHY: bibliography.bib
+#+bibliographystyle: csl
+#+OPTIONS: toc:nil  
+
+#+LATEX:\renewcommand*\contentsname{Contenuti}
+#+LATEX:\tableofcontents
+
+* Introduzione
+
+  La recente pandemia, oltre ad aver mietuto diverse vittime,
+  ha anche aggravato le patologie, e/o i disturbi legati alla mente.
+  Questa visualizzazione cerca di evidenziare i cambiamenti, siano
+  essi miglioramenti o peggioramenti, di queste patologie.
+
+  Tuttavia, occorre sottolineare, per evitare di scadere in
+  sensazionalismi, che queste visualizzazioni riguardano in
+  particolare degli studi effettuati dall'universita di Padova[1],
+  ed essi fanno riferimenti ad alcuni questionari, che non sono
+  sempre lo strumento adatto per diagnosticare certe problematiche;
+  inoltre gli studi fanno riferimento ad uno specifico campione di
+  popolazione, ovvero quello degli studenti universitari, quindi
+  essi non riflettono la popolazione in generale.
+
+  Al momento, non esistono molti studi a riguardo, ed in generale,
+  e' troppo presto per poter trarre delle conclusioni, su quelli
+  che sono gli effetti a lungo termine della pandemia in questo
+  specifico campo.
+
+  Lo studio prende in esame una serie di questionari, svolti da 358
+  studenti italiani, di eta' compresa tra i 18 e i 30 anni.
+  I questionari sono stati riproposti durante piu periodi, ed
+  evidenziano i cambiamenti pre/durante/post pandemia.
+
+* Obsessive Compulsive Inventory (OCI-R)
+
+  Il questionario autovalutativo OCI-R valuta la gravita' e la
+  tipologia di sintomi che possono potenzialmente essere relegati
+  al /disturbo ossessivo compulsivo/ [[https://www.nimh.nih.gov/health/topics/obsessive-compulsive-disorder-ocd][OCD]]
+
+  I valori al di sopra della soglia clinica di 20 pt sono da
+  considerare allarmanti.
+
+[[file:./src/visual/assets/barchart/oci-bar.png]]
+[[file:./src/visual/assets/boxplot/ocir_females-plot.png]]
+[[file:./src/visual/assets/boxplot/ocir_males-plot.png]]
+  
+* Beck Depression Inventory (BDI)
+
+  Il questionario autovalutativo BDI, e' uno dei piu comuni test
+  psicometrici per valutare la gravita' della depressione di un
+  individuo.
+  Valuta alcuni sintomi di depressione; come l'assenza di speranza,
+  l'irascibilita, sensazione di colpevolezza, o sintomi piu fisici,
+  come spossatezza, perdita di peso, ecc ecc.
+
+  I vari punteggi standardizzati:
+
+  - 0-9: Minimal Depression
+  - 10-18: Mild Depression
+  - 19-29: Moderate Depression
+  - 30-63: Severe Depression
+
+  [[file:./src/visual/assets/barchart/bdi-bar.png]]        
+  [[file:./src/visual/assets/boxplot/bdi_females-plot.png]]
+  [[file:./src/visual/assets/boxplot/bdi_males-plot.png]]
+
+* Beck Anxiety Inventory (BAI)
+
+  Il questionario autovalutativo BAI valuta il grado di ansia in
+  adolescenti e adulti. Le domande volgono su alcuni comuni sintomi
+  di stress dell'ultima settimana, sopratutto in riferimento a
+  sintomi relativi ad attacchi di panico.
+
+  I vari punteggi standardizzati:
+
+  - 0-7: Minimal
+  - 8-15: Mild
+  - 16-25: Moderate
+  - 26-63: Severe
+
+  [[file:./src/visual/assets/barchart/bai-bar.png]]        
+  [[file:./src/visual/assets/boxplot/bai_females-plot.png]]
+  [[file:./src/visual/assets/boxplot/bai_males-plot.png]]
+  
+* Eating Habits Questionnaire (EHQ)
+  
+  Il questionario autovalutativo EHQ valuta le abitudine alimentari
+  del soggetto, durante gli ultimi 7 giorni.
+  Valuta la propensione dell'individuo a sviluppare un disturbo
+  chiamato "Orthorexia Nervosa", ovvero un problema di natura
+  psicologica che riguarda l'eccessiva preoccupazione per
+  l'alimentazione sana.
+
+  [[file:./src/visual/assets/barchart/ehq-bar.png]]      
+  [[file:./src/visual/assets/boxplot/ehq_females-plot.png]]
+  [[file:./src/visual/assets/boxplot/ehq_males-plot.png]]
+  
+* Eating Disorder Risk (ED Risk)
+  
+  Il questionario autovalutativo ED valuta la propensione di un
+  individuo di sviluppare disordini alimentari, che possono
+  impattare negativamente sulla salute psicofisica dell'individuo
+
+  [[file:./src/visual/assets/barchart/ed-bar.png]]    
+  [[file:./src/visual/assets/boxplot/ed_females-plot.png]]
+  [[file:./src/visual/assets/boxplot/ed_males-plot.png]]
+
+* Appendice Tecnica
+
+Il notebook viene creato a partire da un R Data File (RDA), il quale
+viene manipolato da uno script R, fornitoci dal dr. Meda, e
+appositamente modificato per creare un dataset (CSV) adatto per esser
+manipolato da [[https://matplotlib.org/][matplotlib]].
+
+Partendo dal dataset, abbiamo creato una classe =Report= attua a modificare e
+filtrare il csv in base alle esigenze; ad esempio per ottenere
+soltanto gli studenti maschi con disordini mentali pregressi.
+
+#+begin_src python
+class Report:
+    """Report contains the dataframe..."""
+
+    def __init__(self, data, **kargs):
+        """If data is a filepath(string), then
+        load a csv file into a pandas dataframe,
+        else set as current dataframe"""
+        if isinstance(data, str):
+            self.df = pd.read_csv(data, **kargs)
+        elif isinstance(data, pd.DataFrame):
+            self.df = data
+
+    def phase(self, phase):
+        """Select a Lockdown phase and filter the dataframe"""
+        if phase == "Before":
+            mask = self.df.redcap_event_name == "Before Lockdown"
+            self.df = self.df[mask]
+        elif phase == "During":
+            mask = self.df.redcap_event_name == "During Lockdown"
+            self.df = self.df[mask]
+        elif phase == "After":
+            mask = self.df.redcap_event_name == "After Lockdown"
+            self.df = self.df[mask]
+#+end_src
+
+Fatto cio' ci sono una serie di funzioni per creare /barcharts/ e
+/boxplots/ partendo dalla classe =Report=.
+
+#+begin_src python
+def oci_barchart(df_before, df_during, df_post):
+    """oci score means"""
+
+    _, ax = plt.subplots()
+    init(ax, 25)
+
+    plt.title("Obsessive Compulsive Inventory (OCI-R) score means")
+    plt.ylabel("Average OCI-R score")
+    plt.xlabel("")
+
+    ax.axhline(20, linestyle='--', color='k', linewidth=0.5)
+    plt.annotate("Clinical threshold", (2,20))
+
+    plt.bar(0.4, round(mean_pre_males, 1), width=.30, color=(0.3,0.9,0.4,0.6))
+    plt.bar(0.7, round(mean_pre_females, 1), width=.30, color=(0.3,0.1,0.4,0.6))
+    plt.bar(2.35, round(mean_dur_males, 1), width=.30, color=(0.3,0.9,0.4,0.6))
+    plt.bar(2.65, round(mean_dur_females, 1), width=.30, color=(0.3,0.1,0.4,0.6))
+    plt.bar(4.3, round(mean_post_males, 1), width=.30, color=(0.3,0.9,0.4,0.6))
+    plt.bar(4.6, round(mean_post_females, 1), width=.30, color=(0.3,0.1,0.4,0.6))
+    
+#+end_src
+
+Infine, il tutto viene inserito in un file [[https://orgmode.org/][org]], per poi esser
+esportato in LaTeX e trasformato in PDF.
+
+#+begin_src sh
+emacs -Q --batch "(require 'ox-latex)" notebook.org -f org-latex-export-to-pdf
+#+end_src
+
+* Conclusioni
+
+Questo studio prospettico mostra come gli studenti, che hanno
+collaborato ai questionari, sottoposti ad isolamento sociale, erano
+piu inclini ad un peggioramento, indipententemente dal sesso.
+
+Il lockdown ha causato un incremento di due punti nella mediana del
+punteggio BDI-2, e cio' ha portato al possibile peggioramento delle
+sintomatologie depressive.
+Nonostante cio, lo studio mostra che un periodo di 7
+settimane non sono state sufficienti a concretizzare questa tendenza;
+infatti i valori sono ritornati velocementi a quelli prima del
+lockdown.
+
+I punteggi riguardanti le sintomatologie relative all'ansia e al disturbo
+ossessivo-compulsivo non hanno subito un incremento a causa del
+lockdown, anzi c'e' stato una riduzione dei punteggi finito il
+lockdown.
+
+Per quanto riguarda i punteggi relativi ai disordini alimentari,
+c'e' stato un incremento solo da chi aveva gia' disturbi pregressi.
+
+In generale il lockdown ha impattato in maniera differente su ogni
+tipologia di disturbo; l'unico punteggio affetto da un significativo
+incremento e' la /Beck Depression Inventory/, e cio' probabilmente e'
+specchio di reali incrementi di sintomatologie depressive, come
+riportato in precedenza da [[*References][References]]
+Questo incremento si e' riscontrato per lo piu in studenti senza
+disordini mentali pregressi.
+
+E' sicuramente possibile identificare il lockdown come una delle
+cause di peggioramento dei sintomi depressivi, ma risulta difficile
+controllare tutte le altre possibili cause, come lo /status/
+socio-economico del singolo individuo.
+
+In conclusione, i lavoratori del settore medico, devono cautelarmente
+considerare un possibile aggravamento della sintomatologia depressiva,
+legata al lockdown, indipendentemente dalla storia clinica del
+paziente, previ ulteriori studi.
+
+* References
+
+[cite:@pmid33360865; @Cellini2020]
+
+#+PRINT_BIBLIOGRAPHY:
